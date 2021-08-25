@@ -484,12 +484,12 @@ handle_stream_winner_loser(_CurrentStream, _WinnerStream, LoserStream, _Data) ->
     spawn(fun() -> libp2p_framed_stream:close(LoserStream) end),
     false.
 
-handle_send(StreamPid, Server, Ref, Bin, Data)->
+handle_send(StreamPid, Server, Ref, Bin, Data=#data{target={Target,_})->
     Result = libp2p_framed_stream:send(StreamPid, Bin),
     libp2p_group_server:send_result(Server, Ref, Result),
     case Result of
         {error, _Reason} ->
-            lager:info("send via stream ~p failed with reason ~p", [StreamPid, Result]),
+            lager:info("send via stream ~p for ~p failed with reason ~p", [StreamPid, Target, Result]),
             {next_state, connecting, Data#data{stream_pid=update_stream(undefined, Data)},
              ?TRIGGER_CONNECT_RETRY};
         _ ->
