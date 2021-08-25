@@ -492,7 +492,7 @@ handle_send(StreamPid, Server, Ref, Bin, Data=#data{target={Target,_}})->
     libp2p_group_server:send_result(Server, Ref, Result),
     case Result of
         {error, _Reason} ->
-            lager:info("send via stream ~p for ~p failed with reason ~p", [StreamPid, Target, Result]),
+            lager:info("send via stream ~p for ~p (Target: ~p) failed with reason ~p", [StreamPid, libp2p_crypto:pubkey_bin_to_p2p(Bin), Target, Result]),
             {next_state, connecting, Data#data{stream_pid=update_stream(undefined, Data)},
              ?TRIGGER_CONNECT_RETRY};
         _ ->
