@@ -273,8 +273,10 @@ connecting(info, connect_retry_timeout, Data=#data{tid=TID,
             Pid = erlang:spawn_link(fun() ->
                 case dial(Parent, TID, MAddr, DialOptions, M, A, SupportedPaths) of
                     {error, Error} ->
+						lager:info("connect error for ~p, error: ~p", [MAddr, Error]),
                         Parent ! {connect_error, Error};
                     {ok, StreamPid, AcceptedPath} ->
+						lager:info("connect success for ~p", [MAddr]),
                         Parent ! {assign_stream, StreamPid, AcceptedPath}
                 end
             end),
