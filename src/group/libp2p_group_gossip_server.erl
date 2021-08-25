@@ -218,7 +218,7 @@ handle_cast({send, Key, Data}, State=#state{bloom=Bloom}) ->
         false ->
             bloom:set(Bloom, {out, Data}),
             {_, Pids} = lists:unzip(connections(all, State)),
-            lager:debug("sending data via connection pids: ~p",[Pids]),
+            lager:info("sending data via connection pids: ~p",[Pids]),
             lists:foreach(fun(Pid) ->
                                   %% TODO we could check the connections's Address here for 
                                   %% if we received this data from that address and avoid

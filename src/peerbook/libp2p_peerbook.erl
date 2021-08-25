@@ -643,7 +643,8 @@ notify_new_peers(NewPeers, State=#state{notify_timer=NotifyTimer, notify_time=No
                                            error -> maps:put(libp2p_peer:pubkey_bin(Peer), Peer, Acc);
                                            {ok, FoundPeer} ->
                                                case libp2p_peer:supersedes(Peer, FoundPeer) of
-                                                   true -> maps:put(libp2p_peer:pubkey_bin(Peer), Peer, Acc);
+                                                   true -> lager:info("notify for ~p", [libp2p_crypto:pubkey_bin_to_p2p(libp2p_peer:pubkey_bin(Peer))]),
+														   maps:put(libp2p_peer:pubkey_bin(Peer), Peer, Acc);
                                                    false -> Acc
                                                end
                                        end
@@ -697,6 +698,7 @@ notify_peers(State=#state{notify_peers=NotifyPeers, notify_group=NotifyGroup,
                               {_, RandomNPeers} = lists:unzip(lists:sublist(lists:keysort(1, [ {rand:uniform(), E} || E <- PeerList]), PeerCount)),
                               libp2p_peer:encode_list(RandomNPeers)
                       end,
+			lager:info("sending gossip on ~p to ~p peers (limit ~p)", [?GOSSIP_GROUP_KEY, length(PeerList), PeerCount]),
             libp2p_group_gossip:send(GossipGroup, ?GOSSIP_GROUP_KEY, SendFun)
     end,
     State#state{notify_peers=#{}}.
