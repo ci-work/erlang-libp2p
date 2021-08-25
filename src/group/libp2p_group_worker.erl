@@ -264,6 +264,7 @@ connecting(info, connect_retry_timeout, Data=#data{tid=TID,
     %% We first check whether we've hit or max connect back of delay
     %% and go back to targeting to see if we can acquire a better
     %% target.
+    lager:info("connect retry for ~p", [MAddr]),
     kill_pid(ConnectPid),
     case is_max_connect_retry_timer(Data) of
         false ->
@@ -279,7 +280,7 @@ connecting(info, connect_retry_timeout, Data=#data{tid=TID,
             end),
             {keep_state, stop_connect_retry_timer(Data#data{connect_pid=Pid})};
         true ->
-            lager:debug("max connect retries exceeded, going back to targeting"),
+            lager:info("max connect retries exceeded for ~p, going back to targeting", [MAddr]),
             {next_state, targeting, cancel_connect_retry_timer(Data), ?TRIGGER_TARGETING}
     end;
 connecting(EventType, Msg, Data) ->

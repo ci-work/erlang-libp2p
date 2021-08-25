@@ -181,7 +181,7 @@ handle_cast({request_target, peerbook, WorkerPid, Ref}, State=#state{tid=TID}) -
                                    %% if we can't find a peer with the predicate, relax it
                                    case libp2p_peerbook:random(Peerbook, [LocalAddr|WorkerAddrs]) of
                                        {Addr, _} ->
-										   lager:info("using relaxed, using pred, found ~p ~p", [libp2p_crypto:pubkey_bin_to_p2p(Addr)]),
+										   lager:info("using relaxed, found ~p ~p", [libp2p_crypto:pubkey_bin_to_p2p(Addr)]),
                                            [Addr];
                                        false ->
                                            lager:info("cannot get target as no peers or already connected to all peers",[]),
