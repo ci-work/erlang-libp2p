@@ -484,7 +484,7 @@ handle_stream_winner_loser(_CurrentStream, _WinnerStream, LoserStream, _Data) ->
     spawn(fun() -> libp2p_framed_stream:close(LoserStream) end),
     false.
 
-handle_send(StreamPid, Server, Ref, Bin, Data=#data{target={Target,_})->
+handle_send(StreamPid, Server, Ref, Bin, Data=#data{target={Target,_}})->
     Result = libp2p_framed_stream:send(StreamPid, Bin),
     libp2p_group_server:send_result(Server, Ref, Result),
     case Result of
