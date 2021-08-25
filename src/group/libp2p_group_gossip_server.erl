@@ -206,6 +206,7 @@ handle_cast({send, Key, Fun}, State=#state{}) when is_function(Fun, 0) ->
     %% use a fun to generate the send data for each gossip peer
     %% this can be helpful to send a unique random subset of data to each peer
     {_, Pids} = lists:unzip(connections(all, State)),
+	lager:info("FUN: sending data on ~p via connection pids: ~p",[Key, Pids]),
     lists:foreach(fun(Pid) ->
                           Data = Fun(),
                           %% Catch errors encoding the given arguments to avoid a bad key or
@@ -221,7 +222,7 @@ handle_cast({send, Key, Data}, State=#state{bloom=Bloom}) ->
         false ->
             bloom:set(Bloom, {out, Data}),
             {_, Pids} = lists:unzip(connections(all, State)),
-            lager:info("sending data via connection pids: ~p",[Pids]),
+            lager:info("DATA: sending data on ~p via connection pids: ~p",[Key, Pids]),
             lists:foreach(fun(Pid) ->
                                   %% TODO we could check the connections's Address here for 
                                   %% if we received this data from that address and avoid
