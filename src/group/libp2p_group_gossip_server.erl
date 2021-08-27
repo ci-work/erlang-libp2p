@@ -171,22 +171,13 @@ handle_cast({request_target, peerbook, WorkerPid, Ref}, State=#state{tid=TID}) -
                                           W#worker.kind /= seed ],
 					   lager:info("looking for new target", []),
                        try
-                           Pred = application:get_env(libp2p, random_peer_pred, fun(_) -> true end),
-                           Ct = application:get_env(libp2p, random_peer_tries, 100),
-                           case libp2p_peerbook:random(Peerbook, [LocalAddr|WorkerAddrs], Pred, Ct) of
+                           case get_fixed_peer(State) of
                                {Addr, _} ->
-								   lager:info("using pred, found ~p", [libp2p_crypto:pubkey_bin_to_p2p(Addr)]),
-                                   [Addr];
+								   lager:info("using get_fixed, found ~p", [Addr]),
+                                   [libp2p_crypto:p2p_to_pubkey_bin(Addr)];
                                false ->
-                                   %% if we can't find a peer with the predicate, relax it
-                                   case libp2p_peerbook:random(Peerbook, [LocalAddr|WorkerAddrs]) of
-                                       {Addr, _} ->
-										   lager:info("using relaxed, found ~p ~p", [libp2p_crypto:pubkey_bin_to_p2p(Addr)]),
-                                           [Addr];
-                                       false ->
-                                           lager:info("cannot get target as no peers or already connected to all peers",[]),
-                                           []
-                                   end
+                                   lager:info("cannot get target as no peers or already connected to all peers",[]),
+                                   [];
                            end
                        catch _:_ ->
                                []
@@ -387,6 +378,30 @@ assign_target(WorkerPid, WorkerRef, TargetAddrs, State=#state{workers=Workers, s
             end
     end.
 
+-spec get_fixed_peer(State :: term()) -> string().
+get_fixed_peer(State=#state{tid=TID, seed_nodes=SeedAddrs}) ->
+	{CurrentAddrs, _} = lists:unzip(connections(all, State)),
+    LocalAddr = libp2p_swarm:p2p_address(TID),
+	ExcludedAddrs = CurrentAddrs ++ [LocalAddr],
+    FixedAddrs = case application:get_env(libp2p, fixed_nodes, "") of
+        {ok, ""} -> [];
+        {ok, Nodes} -> string:split(Nodes, ",", all);
+        _ -> []
+    end,
+	BaseAddrs = sets:to_list(sets:subtract(sets:from_list(FixedAddrs),
+                                             sets:from_list(ExcludedAddrs))),
+    lists:nth(length(BaseAddrs), BaseAddrs).
+
+handle_cast({request_target, seed, WorkerPid, Ref}, State=#state{tid=TID, seed_nodes=SeedAddrs}) ->
+    {CurrentAddrs, _} = lists:unzip(connections(all, State)),
+    LocalAddr = libp2p_swarm:p2p_address(TID),
+    %% Exclude the local swarm address from the available addresses
+    ExcludedAddrs = CurrentAddrs ++ [LocalAddr],
+    BaseAddrs = sets:to_list(sets:subtract(sets:from_list(SeedAddrs),
+                                             sets:from_list(ExcludedAddrs))),
+    TargetAddrs = maybe_lookup_seed_in_dns(BaseAddrs),
+
+	
 maybe_lookup_seed_in_dns(TargetAddrs) ->
     case application:get_env(libp2p, use_dns_for_seeds, false) of
         false ->
