@@ -162,19 +162,15 @@ handle_cast({request_target, inbound, WorkerPid, _Ref}, State=#state{}) ->
     {noreply, stop_inbound_worker(WorkerPid, State)};
 handle_cast({request_target, peerbook, WorkerPid, Ref}, State=#state{tid=TID}) ->
     lager:info("looking for new target", []),
-    PeerList = try
-                   case get_fixed_peer(State) of
-                       {Addr, _} ->
-                           lager:info("using get_fixed, found ~p", [Addr]),
-                           [Addr];
-                       false ->
-                           lager:info("cannot get target as no peers or already connected to all peers",[]),
-                           []
-                   end
-               catch _:_ ->
-                       []
-               end
-       end,
+    PeerList =
+        case get_fixed_peer(State) of
+            {Addr, _} ->
+                lager:info("using get_fixed, found ~p", [Addr]),
+                [Addr];
+            false ->
+                lager:info("cannot get target as no peers or already connected to all peers",[]),
+                []
+        end,
     {noreply, assign_target(WorkerPid, Ref, PeerList, State)};
 handle_cast({request_target, seed, WorkerPid, Ref}, State=#state{tid=TID, seed_nodes=SeedAddrs}) ->
     {CurrentAddrs, _} = lists:unzip(connections(all, State)),
