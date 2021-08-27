@@ -174,10 +174,10 @@ handle_cast({request_target, peerbook, WorkerPid, Ref}, State=#state{tid=TID}) -
                            case get_fixed_peer(State) of
                                {Addr, _} ->
 								   lager:info("using get_fixed, found ~p", [Addr]),
-                                   [libp2p_crypto:p2p_to_pubkey_bin(Addr)];
+                                   [Addr];
                                false ->
                                    lager:info("cannot get target as no peers or already connected to all peers",[]),
-                                   [];
+                                   []
                            end
                        catch _:_ ->
                                []
@@ -391,15 +391,6 @@ get_fixed_peer(State=#state{tid=TID, seed_nodes=SeedAddrs}) ->
 	BaseAddrs = sets:to_list(sets:subtract(sets:from_list(FixedAddrs),
                                              sets:from_list(ExcludedAddrs))),
     lists:nth(length(BaseAddrs), BaseAddrs).
-
-handle_cast({request_target, seed, WorkerPid, Ref}, State=#state{tid=TID, seed_nodes=SeedAddrs}) ->
-    {CurrentAddrs, _} = lists:unzip(connections(all, State)),
-    LocalAddr = libp2p_swarm:p2p_address(TID),
-    %% Exclude the local swarm address from the available addresses
-    ExcludedAddrs = CurrentAddrs ++ [LocalAddr],
-    BaseAddrs = sets:to_list(sets:subtract(sets:from_list(SeedAddrs),
-                                             sets:from_list(ExcludedAddrs))),
-    TargetAddrs = maybe_lookup_seed_in_dns(BaseAddrs),
 
 	
 maybe_lookup_seed_in_dns(TargetAddrs) ->
