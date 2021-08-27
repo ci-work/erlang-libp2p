@@ -160,7 +160,7 @@ handle_cast({add_handler, Key, Handler}, State=#state{handlers=Handlers}) ->
     {noreply, State#state{handlers=maps:put(Key, Handler, Handlers)}};
 handle_cast({request_target, inbound, WorkerPid, _Ref}, State=#state{}) ->
     {noreply, stop_inbound_worker(WorkerPid, State)};
-handle_cast({request_target, peerbook, WorkerPid, Ref}, State=#state{tid=TID}) ->
+handle_cast({request_target, peerbook, WorkerPid, Ref}, State=#state{}) ->
     lager:info("looking for new target", []),
     PeerList =
         case get_fixed_peer(State) of
