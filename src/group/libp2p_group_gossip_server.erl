@@ -162,15 +162,9 @@ handle_cast({request_target, inbound, WorkerPid, _Ref}, State=#state{}) ->
     {noreply, stop_inbound_worker(WorkerPid, State)};
 handle_cast({request_target, peerbook, WorkerPid, Ref}, State=#state{}) ->
     lager:info("looking for new target", []),
-    PeerList =
-        case get_fixed_destination_peer(State) of
-            {Addr, _} ->
-                lager:info("using get_fixed_destination_peer, found ~p", [Addr]),
-                [libp2p_crypto:p2p_to_pubkey_bin(Addr)];
-            false ->
-                lager:info("cannot get target as no peers or already connected to all peers",[]),
-                []
-        end,
+	FixedDestinationPeer = get_fixed_destination_peer(State),
+	lager:info("get_fixed_destination_peer, found ~p", [FixedDestinationPeer]),
+    PeerList = [libp2p_crypto:p2p_to_pubkey_bin(FixedDestinationPeer)],
     {noreply, assign_target(WorkerPid, Ref, PeerList, State)};
 handle_cast({request_target, seed, WorkerPid, Ref}, State=#state{tid=TID, seed_nodes=SeedAddrs}) ->
     {CurrentAddrs, _} = lists:unzip(connections(all, State)),
