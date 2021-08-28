@@ -272,14 +272,16 @@ connecting(info, connect_retry_timeout, Data=#data{tid=TID,
             Pid = erlang:spawn_link(fun() ->
                 case dial(Parent, TID, MAddr, DialOptions, M, A, SupportedPaths) of
                     {error, Error} ->
+						lager:info("connect retry error for ~p, error: ~p", [MAddr, Error]),
                         Parent ! {connect_error, Error};
                     {ok, StreamPid, AcceptedPath} ->
+						lager:info("connect retry success for ~p", [MAddr]),
                         Parent ! {assign_stream, StreamPid, AcceptedPath}
                 end
             end),
             {keep_state, stop_connect_retry_timer(Data#data{connect_pid=Pid})};
         true ->
-            lager:debug("max connect retries exceeded, going back to targeting"),
+            lager:info("max connect retries exceeded for ~p, going back to targeting", [MAddr]),
             {next_state, targeting, cancel_connect_retry_timer(Data), ?TRIGGER_TARGETING}
     end;
 connecting(EventType, Msg, Data) ->
@@ -484,12 +486,12 @@ handle_stream_winner_loser(_CurrentStream, _WinnerStream, LoserStream, _Data) ->
     spawn(fun() -> libp2p_framed_stream:close(LoserStream) end),
     false.
 
-handle_send(StreamPid, Server, Ref, Bin, Data)->
+handle_send(StreamPid, Server, Ref, Bin, Data=#data{target={Target,_}})->
     Result = libp2p_framed_stream:send(StreamPid, Bin),
     libp2p_group_server:send_result(Server, Ref, Result),
     case Result of
         {error, _Reason} ->
-            lager:debug("send via stream ~p failed with reason ~p", [StreamPid, Result]),
+            lager:info("send via ~p on stream ~p (Target: ~p) failed with reason ~p", [Ref, StreamPid, Target, Result]),
             {next_state, connecting, Data#data{stream_pid=update_stream(undefined, Data)},
              ?TRIGGER_CONNECT_RETRY};
         _ ->
