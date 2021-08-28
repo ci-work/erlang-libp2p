@@ -371,7 +371,7 @@ get_fixed_peer(State=#state{tid=TID}) ->
     {CurrentAddrs, _} = lists:unzip(connections(all, State)),
     LocalAddr = libp2p_swarm:p2p_address(TID),
     ExcludedAddrs = CurrentAddrs ++ [LocalAddr],
-    FixedAddrs = case application:get_env(libp2p, fixed_nodes, "") of
+    FixedAddrs = case application:get_env(libp2p, fixed_nodes) of
         {ok, ""} -> [];
         {ok, Nodes} -> string:split(Nodes, ",", all);
         _ -> []
