@@ -698,7 +698,7 @@ notify_peers(State=#state{notify_peers=NotifyPeers, notify_group=NotifyGroup,
                               {_, RandomNPeers} = lists:unzip(lists:sublist(lists:keysort(1, [ {rand:uniform(), E} || E <- PeerList]), PeerCount)),
                               libp2p_peer:encode_list(RandomNPeers)
                       end,
-            lager:info("sending gossip on ~p for ~p peers (limit ~p)", [?GOSSIP_GROUP_KEY, length(NotifyPeers), PeerCount]),
+            lager:info("sending gossip on ~p for ~p peers (limit ~p)", [?GOSSIP_GROUP_KEY, maps:size(NotifyPeers), PeerCount]),
             libp2p_group_gossip:send(GossipGroup, ?GOSSIP_GROUP_KEY, SendFun)
     end,
     State#state{notify_peers=#{}}.
