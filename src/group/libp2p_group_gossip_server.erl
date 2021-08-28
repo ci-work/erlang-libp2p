@@ -161,7 +161,7 @@ handle_cast({add_handler, Key, Handler}, State=#state{handlers=Handlers}) ->
 handle_cast({request_target, inbound, WorkerPid, _Ref}, State=#state{}) ->
     {noreply, stop_inbound_worker(WorkerPid, State)};
 handle_cast({request_target, peerbook, WorkerPid, Ref}, State=#state{}) ->
-    lager:info("looking for new target", []),
+    lager:debug("looking for new target", []),
 	FixedDestinationPeer = get_fixed_destination_peer(State),
 	lager:info("get_fixed_destination_peer, found ~p", [FixedDestinationPeer]),
     PeerList = [libp2p_crypto:p2p_to_pubkey_bin(FixedDestinationPeer)],
@@ -179,7 +179,7 @@ handle_cast({send, Key, Fun}, State=#state{}) when is_function(Fun, 0) ->
     %% use a fun to generate the send data for each gossip peer
     %% this can be helpful to send a unique random subset of data to each peer
     {_, Pids} = lists:unzip(connections(all, State)),
-    lager:info("FUN: sending data on ~p via connection pids: ~p",[Key, Pids]),
+    lager:debug("FUN: sending data on ~p via connection pids: ~p",[Key, Pids]),
     lists:foreach(fun(Pid) ->
                           Data = Fun(),
                           %% Catch errors encoding the given arguments to avoid a bad key or
@@ -195,7 +195,7 @@ handle_cast({send, Key, Data}, State=#state{bloom=Bloom}) ->
         false ->
             bloom:set(Bloom, {out, Data}),
             {_, Pids} = lists:unzip(connections(all, State)),
-            lager:info("DATA: sending data on ~p via connection pids: ~p",[Key, Pids]),
+            lager:debug("DATA: sending data on ~p via connection pids: ~p",[Key, Pids]),
             lists:foreach(fun(Pid) ->
                                   %% TODO we could check the connections's Address here for 
                                   %% if we received this data from that address and avoid
