@@ -640,10 +640,11 @@ notify_new_peers(NewPeers, State=#state{notify_timer=NotifyTimer, notify_time=No
                                    false -> Acc;
                                    true ->
                                        case maps:find(libp2p_peer:pubkey_bin(Peer), Acc) of
-                                           error -> maps:put(libp2p_peer:pubkey_bin(Peer), Peer, Acc);
+                                           error -> lager:info("new notify for ~p", [libp2p_crypto:pubkey_bin_to_p2p(libp2p_peer:pubkey_bin(Peer))]),
+                                                    maps:put(libp2p_peer:pubkey_bin(Peer), Peer, Acc);
                                            {ok, FoundPeer} ->
                                                case libp2p_peer:supersedes(Peer, FoundPeer) of
-                                                   true -> lager:info("notify for ~p", [libp2p_crypto:pubkey_bin_to_p2p(libp2p_peer:pubkey_bin(Peer))]),
+                                                   true -> lager:info("supersedes notify for ~p", [libp2p_crypto:pubkey_bin_to_p2p(libp2p_peer:pubkey_bin(Peer))]),
                                                            maps:put(libp2p_peer:pubkey_bin(Peer), Peer, Acc);
                                                    false -> Acc
                                                end

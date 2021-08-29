@@ -71,7 +71,7 @@ handle_data(_Role, Data, State=#state{handler_module=HandlerModule,
                                   path=Path}) ->
     #libp2p_gossip_frame_pb{key=Key, data=Bin} =
         libp2p_gossip_pb:decode_msg(Data, libp2p_gossip_frame_pb),
-    lager:debug("gossip received for handler ~p and key ~p via path ~p with payload ~p",[HandlerModule, Key, Path, Bin]),
+    lager:info("gossip received for handler ~p and key ~p via path ~p with payload ~p",[HandlerModule, Key, Path, Bin]),
     DecodedData = apply_path_decode(Path, Bin),
     case bloom:check(Bloom, {in, DecodedData}) of
         true ->
