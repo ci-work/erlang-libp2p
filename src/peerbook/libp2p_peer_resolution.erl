@@ -56,7 +56,7 @@ handle_gossip_data(StreamPid, Data, Handle) ->
                             noreply
                     end;
                 {limit_exceeded, _, _} ->
-					lager:info("ARP throttle check limit exceeded"),
+					lager:info("ARP throttle check limit exceeded for ~p", [libp2p_crypto:pubkey_bin_to_p2p(PK)]),
                     noreply
             end;
         #libp2p_peer_resolution_msg_pb{msg = {response, #libp2p_signed_peer_pb{} = Peer}} ->
