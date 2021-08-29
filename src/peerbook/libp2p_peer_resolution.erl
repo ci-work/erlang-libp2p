@@ -14,7 +14,7 @@
 
 -spec resolve(pid(), libp2p_crypto:pubkey_bin(), non_neg_integer()) -> ok.
 resolve(GossipGroup, PK, Ts) ->
-    lager:debug("ARP request for ~p", [libp2p_crypto:pubkey_bin_to_p2p(PK)]),
+    lager:info("ARP request for ~p", [libp2p_crypto:pubkey_bin_to_p2p(PK)]),
     libp2p_group_gossip:send(GossipGroup, ?GOSSIP_GROUP_KEY,
                              libp2p_peer_resolution_pb:encode_msg(
                                #libp2p_peer_resolution_msg_pb{
@@ -32,6 +32,7 @@ install_handler(G, Handle) ->
 
 -spec handle_gossip_data(pid(), binary(), libp2p_peerbook:peerbook()) -> {reply, iodata()} | noreply.
 handle_gossip_data(StreamPid, Data, Handle) ->
+	lager:info("ARP attempt"),
     case libp2p_peer_resolution_pb:decode_msg(Data, libp2p_peer_resolution_msg_pb) of
         #libp2p_peer_resolution_msg_pb{msg = {request, #libp2p_peer_request_pb{pubkey=PK, timestamp=Ts}}} ->
             case throttle:check(?MODULE, StreamPid) of
@@ -55,6 +56,7 @@ handle_gossip_data(StreamPid, Data, Handle) ->
                             noreply
                     end;
                 {limit_exceeded, _, _} ->
+					lager:info("ARP throttle check limit exceeded"),
                     noreply
             end;
         #libp2p_peer_resolution_msg_pb{msg = {response, #libp2p_signed_peer_pb{} = Peer}} ->
