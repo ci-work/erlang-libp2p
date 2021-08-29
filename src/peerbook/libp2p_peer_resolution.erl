@@ -22,7 +22,7 @@ resolve(GossipGroup, PK, Ts) ->
     ok.
 
 install_handler(G, Handle) ->
-    throttle:setup(?MODULE, 10, per_minute),
+    throttle:setup(?MODULE, 600, per_minute),
     libp2p_group_gossip:add_handler(G,  ?GOSSIP_GROUP_KEY, {?MODULE, Handle}),
     ok.
 
@@ -32,7 +32,6 @@ install_handler(G, Handle) ->
 
 -spec handle_gossip_data(pid(), binary(), libp2p_peerbook:peerbook()) -> {reply, iodata()} | noreply.
 handle_gossip_data(StreamPid, Data, Handle) ->
-	lager:info("ARP attempt"),
     case libp2p_peer_resolution_pb:decode_msg(Data, libp2p_peer_resolution_msg_pb) of
         #libp2p_peer_resolution_msg_pb{msg = {request, #libp2p_peer_request_pb{pubkey=PK, timestamp=Ts}}} ->
             case throttle:check(?MODULE, StreamPid) of
