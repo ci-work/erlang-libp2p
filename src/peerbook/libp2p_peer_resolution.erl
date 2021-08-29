@@ -22,7 +22,7 @@ resolve(GossipGroup, PK, Ts) ->
     ok.
 
 install_handler(G, Handle) ->
-    throttle:setup(?MODULE, 600, per_minute),
+    throttle:setup(?MODULE, 100, per_minute),
     libp2p_group_gossip:add_handler(G,  ?GOSSIP_GROUP_KEY, {?MODULE, Handle}),
     ok.
 
