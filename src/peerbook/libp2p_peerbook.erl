@@ -481,7 +481,7 @@ handle_cast({unregister_session, SessionPid}, State=#state{sessions=Sessions}) -
 handle_cast({register_session, SessionPid, Identify},
             State=#state{sessions=Sessions}) ->
     SessionAddr = libp2p_identify:pubkey_bin(Identify),
-    MaxConns = application:get_env(libp2p, max_peers_to_gossip, 20),
+    MaxConns = application:get_env(libp2p, max_peers_to_gossip, 100),
     {noreply, update_this_peer(State#state{sessions=maps:put(SessionPid, SessionAddr, Sessions), connections=lists:sublist([SessionAddr|State#state.connections], MaxConns*2)})};
 handle_cast({join_notify, JoinPid}, State=#state{notify_group=Group}) ->
     group_join(Group, JoinPid),
