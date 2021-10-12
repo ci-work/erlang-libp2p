@@ -47,8 +47,8 @@
           metadata_ref :: undefined | reference()
         }).
 
-%% Default peer stale time is 14 days (in milliseconds)
--define(DEFAULT_STALE_TIME, 14 * 24 * 60 * 60 * 1000).
+%% Default peer stale time is 365 days (in milliseconds)
+-define(DEFAULT_STALE_TIME, 365 * 24 * 60 * 60 * 1000).
 %% Defailt "this" peer heartbeat time 5 minutes (in milliseconds)
 -define(DEFAULT_PEER_TIME, 5 * 60 * 1000).
 %% Default timer for new peer notifications to connected peers. This
