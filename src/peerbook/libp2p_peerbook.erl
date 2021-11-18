@@ -49,8 +49,8 @@
 
 %% Default peer stale time is 28 days (in milliseconds)
 -define(DEFAULT_STALE_TIME, 28 * 24 * 60 * 60 * 1000).
-%% Defailt "this" peer heartbeat time 5 minutes (in milliseconds)
--define(DEFAULT_PEER_TIME, 5 * 60 * 1000).
+%% Defailt "this" peer heartbeat time 1 minutes (in milliseconds)
+-define(DEFAULT_PEER_TIME, 1 * 60 * 1000).
 %% Default timer for new peer notifications to connected peers. This
 %% allows for fast arrivels to coalesce a number of new peers before a
 %% new list is sent out.
