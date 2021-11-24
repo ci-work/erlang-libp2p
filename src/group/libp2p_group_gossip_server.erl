@@ -83,13 +83,7 @@ init([Sup, TID]) ->
     Opts = libp2p_swarm:opts(TID),
     PeerBookCount = get_opt(Opts, peerbook_connections, ?DEFAULT_PEERBOOK_CONNECTIONS),
     SeedNodes = get_opt(Opts, seed_nodes, []),
-    SeedNodeCount =
-        case application:get_env(libp2p, seed_node, false) of
-            false ->
-                length(SeedNodes),
-            true ->
-                length(SeedNodes)
-        end,
+    SeedNodeCount = length(SeedNodes),
     InboundCount = get_opt(Opts, inbound_connections, ?DEFAULT_MAX_INBOUND_CONNECTIONS),
     DropTimeOut = get_opt(Opts, drop_timeout, ?DEFAULT_DROP_TIMEOUT),
     SupportedPaths = get_opt(Opts, supported_gossip_paths, ?SUPPORTED_GOSSIP_PATHS),
