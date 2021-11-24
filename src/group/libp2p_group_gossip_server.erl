@@ -86,9 +86,10 @@ init([Sup, TID]) ->
     SeedNodeCount =
         case application:get_env(libp2p, seed_node, false) of
             false ->
-                length(SeedNodes);
+                length(SeedNodes)
             true ->
-                length(SeedNodes),
+                length(SeedNodes)
+        end,
     InboundCount = get_opt(Opts, inbound_connections, ?DEFAULT_MAX_INBOUND_CONNECTIONS),
     DropTimeOut = get_opt(Opts, drop_timeout, ?DEFAULT_DROP_TIMEOUT),
     SupportedPaths = get_opt(Opts, supported_gossip_paths, ?SUPPORTED_GOSSIP_PATHS),
