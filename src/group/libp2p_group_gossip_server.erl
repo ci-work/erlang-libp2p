@@ -86,7 +86,7 @@ init([Sup, TID]) ->
     SeedNodeCount =
         case application:get_env(libp2p, seed_node, false) of
             false ->
-                length(SeedNodes)
+                length(SeedNodes),
             true ->
                 length(SeedNodes)
         end,
