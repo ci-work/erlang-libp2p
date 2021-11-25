@@ -58,7 +58,7 @@ handle_gossip_data(StreamPid, Data, Handle) ->
                     noreply
             end;
         #libp2p_peer_resolution_msg_pb{msg = {response, #libp2p_signed_peer_pb{} = Peer}} ->
-            lager:info("ARP result for ~p", [libp2p_crypto:pubkey_bin_to_p2p(libp2p_peer:pubkey_bin(Peer))]),
+            lager:debug("ARP result for ~p", [libp2p_crypto:pubkey_bin_to_p2p(libp2p_peer:pubkey_bin(Peer))]),
             %% send this peer to the peerbook
             libp2p_peerbook:put(Handle, [Peer]),
             %% refresh any relays this peer is using as well so we don't fail
