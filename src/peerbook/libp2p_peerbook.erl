@@ -121,6 +121,7 @@ put(#peerbook{tid=TID, stale_time=StaleTime}=Handle, PeerList0, Prevalidated) ->
                                      andalso (AllowRFC1918 orelse not libp2p_peer:has_private_ip(NewPeer))
                                      andalso libp2p_peer:supersedes(NewPeer, ExistingPeer)
                                      andalso not libp2p_peer:is_stale(NewPeer, StaleTime)
+                                     andalso libp2p_peer:is_dialable(NewPeer)
                                      andalso libp2p_peer:network_id_allowable(NewPeer, libp2p_swarm:network_id(TID)) of
                                      true ->
                                          %% even if the peer is similar, we should still
