@@ -550,7 +550,7 @@ open_rocks(DataDir, CFOpts, TTL, clear) ->
     end.
 
 eligible_gossip_peer(Peer) ->
-    Limit = application:get_env(libp2p, eligible_peer_connectedness, 5),
+    Limit = application:get_env(libp2p, eligible_peer_connectedness, 15),
     libp2p_peer:is_dialable(Peer)
         andalso length(libp2p_peer:connected_peers(Peer)) >= Limit.
 
