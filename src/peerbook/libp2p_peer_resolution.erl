@@ -22,7 +22,7 @@ resolve(GossipGroup, PK, Ts) ->
     ok.
 
 install_handler(G, Handle) ->
-    throttle:setup(?MODULE, 1200, per_minute),
+    throttle:setup(?MODULE, 12000, per_minute),
     libp2p_group_gossip:add_handler(G,  ?GOSSIP_GROUP_KEY, {?MODULE, Handle}),
     ok.
 
@@ -41,16 +41,16 @@ handle_gossip_data(StreamPid, Data, Handle) ->
                         {ok, Peer} ->
                             case libp2p_peer:timestamp(Peer) > Ts of
                                 true ->
-                                    lager:debug("ARP response for ~p Success", [libp2p_crypto:pubkey_bin_to_p2p(PK)]),
+                                    lager:info("ARP response for ~p Success", [libp2p_crypto:pubkey_bin_to_p2p(PK)]),
                                     {reply, libp2p_peer_resolution_pb:encode_msg(
                                               #libp2p_peer_resolution_msg_pb{msg = {response, Peer}})};
                                 false ->
-                                    lager:debug("ARP response for ~p Failed - stale", [libp2p_crypto:pubkey_bin_to_p2p(PK)]),
+                                    lager:info("ARP response for ~p Failed - stale", [libp2p_crypto:pubkey_bin_to_p2p(PK)]),
                                     %% peer is as stale or staler than what they have
                                     noreply
                             end;
                         _ ->
-                            lager:debug("ARP response for ~p Failed - notfound", [libp2p_crypto:pubkey_bin_to_p2p(PK)]),
+                            lager:info("ARP response for ~p Failed - notfound", [libp2p_crypto:pubkey_bin_to_p2p(PK)]),
                             %% don't have this peer
                             noreply
                     end;
@@ -58,7 +58,7 @@ handle_gossip_data(StreamPid, Data, Handle) ->
                     noreply
             end;
         #libp2p_peer_resolution_msg_pb{msg = {response, #libp2p_signed_peer_pb{} = Peer}} ->
-            lager:debug("ARP result for ~p", [libp2p_crypto:pubkey_bin_to_p2p(libp2p_peer:pubkey_bin(Peer))]),
+            lager:info("ARP result for ~p", [libp2p_crypto:pubkey_bin_to_p2p(libp2p_peer:pubkey_bin(Peer))]),
             %% send this peer to the peerbook
             libp2p_peerbook:put(Handle, [Peer]),
             %% refresh any relays this peer is using as well so we don't fail
