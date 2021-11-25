@@ -41,16 +41,16 @@ handle_gossip_data(StreamPid, Data, Handle) ->
                         {ok, Peer} ->
                             case libp2p_peer:timestamp(Peer) > Ts of
                                 true ->
-                                    lager:info("ARP response for ~p Success", [libp2p_crypto:pubkey_bin_to_p2p(PK)]),
+                                    lager:debug("ARP response for ~p Success", [libp2p_crypto:pubkey_bin_to_p2p(PK)]),
                                     {reply, libp2p_peer_resolution_pb:encode_msg(
                                               #libp2p_peer_resolution_msg_pb{msg = {response, Peer}})};
                                 false ->
-                                    lager:info("ARP response for ~p Failed - stale", [libp2p_crypto:pubkey_bin_to_p2p(PK)]),
+                                    lager:debug("ARP response for ~p Failed - stale", [libp2p_crypto:pubkey_bin_to_p2p(PK)]),
                                     %% peer is as stale or staler than what they have
                                     noreply
                             end;
                         _ ->
-                            lager:info("ARP response for ~p Failed - notfound", [libp2p_crypto:pubkey_bin_to_p2p(PK)]),
+                            lager:debug("ARP response for ~p Failed - notfound", [libp2p_crypto:pubkey_bin_to_p2p(PK)]),
                             %% don't have this peer
                             noreply
                     end;
