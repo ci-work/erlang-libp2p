@@ -35,7 +35,7 @@
          bloom :: bloom_nif:bloom()
        }).
 
--define(DEFAULT_PEERBOOK_CONNECTIONS, 10).
+-define(DEFAULT_PEERBOOK_CONNECTIONS, 5).
 -define(DEFAULT_SEEDNODE_CONNECTIONS, 10).
 -define(DEFAULT_MAX_INBOUND_CONNECTIONS, 10).
 -define(DEFAULT_DROP_TIMEOUT, 5 * 60 * 1000).
@@ -83,7 +83,13 @@ init([Sup, TID]) ->
     Opts = libp2p_swarm:opts(TID),
     PeerBookCount = get_opt(Opts, peerbook_connections, ?DEFAULT_PEERBOOK_CONNECTIONS),
     SeedNodes = get_opt(Opts, seed_nodes, []),
-    SeedNodeCount = length(SeedNodes),
+    SeedNodeCount =
+        case application:get_env(libp2p, seed_node, false) of
+            false ->
+                get_opt(Opts, seednode_connections, ?DEFAULT_SEEDNODE_CONNECTIONS);
+            true ->
+                length(SeedNodes) - 1
+        end,
     InboundCount = get_opt(Opts, inbound_connections, ?DEFAULT_MAX_INBOUND_CONNECTIONS),
     DropTimeOut = get_opt(Opts, drop_timeout, ?DEFAULT_DROP_TIMEOUT),
     SupportedPaths = get_opt(Opts, supported_gossip_paths, ?SUPPORTED_GOSSIP_PATHS),
