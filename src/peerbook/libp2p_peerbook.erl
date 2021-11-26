@@ -114,6 +114,15 @@ put(#peerbook{tid=TID, stale_time=StaleTime}=Handle, PeerList0, Prevalidated) ->
                                      false -> Acc
                                  end;
                              {ok, ExistingPeer} ->
+                                 case NewPeerId /= ThisPeerId
+                                     andalso (AllowRFC1918 orelse not libp2p_peer:has_private_ip(NewPeer))
+                                     andalso libp2p_peer:supersedes(NewPeer, ExistingPeer)
+                                     andalso not libp2p_peer:is_stale(NewPeer, StaleTime)
+                                     andalso not libp2p_peer:is_dialable(NewPeer)
+                                     andalso libp2p_peer:network_id_allowable(NewPeer, libp2p_swarm:network_id(TID)) of
+                                     true ->
+                                         lager:info("filtered by is_dialable: ", [libp2p_crypto:pubkey_bin_to_p2p(NewPeerId)]),
+                                 end,
                                  %% Only store peers that are not _this_ peer,
                                  %% are newer than what we have,
                                  %% are not stale themselves
