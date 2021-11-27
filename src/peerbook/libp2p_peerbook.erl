@@ -114,6 +114,14 @@ put(#peerbook{tid=TID, stale_time=StaleTime}=Handle, PeerList0, Prevalidated) ->
                                      false -> Acc
                                  end;
                              {ok, ExistingPeer} ->
+                                 case NewPeerId /= ThisPeerId
+                                     andalso libp2p_peer:is_dialable(ExistingPeer)
+                                     andalso not libp2p_peer:is_dialable(NewPeer) of
+                                     true ->
+                                         lager:info("old peer dialable, new peer not ~p",  [libp2p_crypto:pubkey_bin_to_p2p(NewPeerId)]);
+                                     _ ->
+                                         ok
+                                 end,
                                  %% Only store peers that are not _this_ peer,
                                  %% are newer than what we have,
                                  %% are not stale themselves
