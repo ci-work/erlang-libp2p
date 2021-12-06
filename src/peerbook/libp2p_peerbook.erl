@@ -549,13 +549,7 @@ open_rocks(DataDir, CFOpts, TTL, clear) ->
     end.
 
 eligible_gossip_peer(Peer) ->
-<<<<<<< HEAD
-    Limit = application:get_env(libp2p, eligible_peer_connectedness, 15),
-    libp2p_peer:is_dialable(Peer)
-        andalso length(libp2p_peer:connected_peers(Peer)) >= Limit.
-=======
     libp2p_peer:is_dialable(Peer).
->>>>>>> branch 'master' of https://github.com/helium/erlang-libp2p.git
 
 -spec mk_this_peer(libp2p_peer:peer() | undefined, #state{}) -> {ok, libp2p_peer:peer()} | {error, term()}.
 mk_this_peer(CurrentPeer, State=#state{tid=TID}) ->
