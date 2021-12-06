@@ -103,7 +103,6 @@ put(#peerbook{tid=TID, stale_time=StaleTime}=Handle, PeerList0, Prevalidated) ->
     AllowRFC1918 = is_rfc1918_allowed(TID),
     NewPeers = lists:foldl(
                  fun(NewPeer, Acc) ->
-<<<<<<< HEAD
                          NewPeerId = libp2p_peer:pubkey_bin(NewPeer),
                          case unsafe_fetch_peer(NewPeerId, Handle) of
                              {error, not_found} ->
@@ -114,14 +113,6 @@ put(#peerbook{tid=TID, stale_time=StaleTime}=Handle, PeerList0, Prevalidated) ->
                                      false -> Acc
                                  end;
                              {ok, ExistingPeer} ->
-                                 %% case NewPeerId /= ThisPeerId
-                                 %%     andalso libp2p_peer:is_dialable(ExistingPeer)
-                                 %%     andalso not libp2p_peer:is_dialable(NewPeer) of
-                                 %%     true ->
-                                 %%         lager:info("old peer dialable, new peer not ~p",  [libp2p_crypto:pubkey_bin_to_p2p(NewPeerId)]);
-                                 %%     _ ->
-                                 %%         ok
-                                 %% end,
                                  %% Only store peers that are not _this_ peer,
                                  %% are newer than what we have,
                                  %% are not stale themselves
@@ -138,46 +129,11 @@ put(#peerbook{tid=TID, stale_time=StaleTime}=Handle, PeerList0, Prevalidated) ->
                                          case libp2p_peer:is_similar(NewPeer, ExistingPeer) of
                                              false ->
                                                  [NewPeer | Acc];
-=======
-                         case libp2p_peer:listen_addrs(NewPeer) == [] of
-                             true ->
-                                 %% no need to store a peer with no listen addresses
-                                 %% and it it will make it easier to get an updated version
-                                 %% later once the peer has an address
-                                 Acc;
-                             _ ->
-                                 NewPeerId = libp2p_peer:pubkey_bin(NewPeer),
-                                 case unsafe_fetch_peer(NewPeerId, Handle) of
-                                     {error, not_found} ->
-                                         case AllowRFC1918 orelse not libp2p_peer:has_private_ip(NewPeer) of
->>>>>>> branch 'master' of https://github.com/helium/erlang-libp2p.git
                                              true ->
-                                                 store_peer(NewPeer, Handle),
-                                                 [NewPeer | Acc];
-                                             false -> Acc
-                                         end;
-                                     {ok, ExistingPeer} ->
-                                         %% Only store peers that are not _this_ peer,
-                                         %% are newer than what we have,
-                                         %% are not stale themselves
-                                         case NewPeerId /= ThisPeerId
-                                              andalso (AllowRFC1918 orelse not libp2p_peer:has_private_ip(NewPeer))
-                                              andalso libp2p_peer:supersedes(NewPeer, ExistingPeer)
-                                              andalso not libp2p_peer:is_stale(NewPeer, StaleTime)
-                                              andalso libp2p_peer:network_id_allowable(NewPeer, libp2p_swarm:network_id(TID)) of
-                                             true ->
-                                                 %% even if the peer is similar, we should still
-                                                 %% store it because it's newer
-                                                 store_peer(NewPeer, Handle),
-                                                 case libp2p_peer:is_similar(NewPeer, ExistingPeer) of
-                                                     false ->
-                                                         [NewPeer | Acc];
-                                                     true ->
-                                                         Acc
-                                                 end;
-                                             _ ->
                                                  Acc
-                                         end
+                                         end;
+                                     _ ->
+                                         Acc
                                  end
                          end
                  end, [], PeerList),
