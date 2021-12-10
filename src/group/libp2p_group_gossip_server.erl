@@ -220,7 +220,7 @@ handle_cast({send, Key, Data}, State=#state{bloom=Bloom}) ->
             {_, Pids} = lists:unzip(connections(all, State)),
             PidsCount = length(Pids),
             lager:info("sending data ~p via connection to ~p pids", [Key, PidsCount]),
-            [Shuffled||{_,Shuffled} <- lists:sort([ {rand:uniform(), N} || N <- Pids])],
+            Shuffled = shuffle(Pids),
             Split = lists:sublist(Shuffled, 5),
             lager:info("split ~p list to ~p of ~p with pids: ~p", [Key, length(Split), PidsCount, Split]),
             lager:debug("sending data via connection pids: ~p",[Pids]),
@@ -538,6 +538,9 @@ mk_multiaddr(Addr) when is_binary(Addr) ->
     libp2p_crypto:pubkey_bin_to_p2p(Addr);
 mk_multiaddr(Value) ->
     Value.
+
+shuffle(List) ->
+    [X || {_,X} <- lists:sort([{rand:uniform(), N} || N <- List])].
 
 update_metadata(State=#state{}) ->
     libp2p_lager_metadata:update(
