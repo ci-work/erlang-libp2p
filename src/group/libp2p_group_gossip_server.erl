@@ -229,7 +229,7 @@ handle_cast({send, Key, Data}, State=#state{bloom=Bloom}) ->
                                   %% if we received this data from that address and avoid
                                   %% bouncing the gossip data back
                                   libp2p_group_worker:send(Pid, Key, Data, true)
-                          end, Pids)
+                          end, Split)
     end,
     {noreply, State};
 handle_cast({send_ready, _Target, _Ref, false}, State=#state{}) ->
