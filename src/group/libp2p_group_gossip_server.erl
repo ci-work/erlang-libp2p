@@ -39,6 +39,7 @@
 -define(DEFAULT_SEEDNODE_CONNECTIONS, 10).
 -define(DEFAULT_MAX_INBOUND_CONNECTIONS, 10).
 -define(DEFAULT_DROP_TIMEOUT, 5 * 60 * 1000).
+-define(DEFAULT_MAX_PEERS_FOR_RESOLUTION, 3).
 -define(GROUP_ID, "gossip").
 -define(DNS_RETRIES, 3).
 -define(DNS_TIMEOUT, 2000). % millis
@@ -218,12 +219,9 @@ handle_cast({send, Key, Data}, State=#state{bloom=Bloom}) ->
         false ->
             bloom:set(Bloom, {out, Data}),
             {_, Pids} = lists:unzip(connections(all, State)),
-            PidsCount = length(Pids),
-            lager:info("sending data ~p via connection to ~p pids", [Key, PidsCount]),
             Shuffled = shuffle(Pids),
-            Split = lists:sublist(Shuffled, 5),
-            lager:info("split ~p list to ~p of ~p with pids: ~p", [Key, length(Split), PidsCount, Split]),
-            lager:debug("sending data via connection pids: ~p",[Pids]),
+            Split = lists:sublist(Shuffled, ?DEFAULT_MAX_PEERS_FOR_RESOLUTION),
+            lager:debug("split ~p list to ~p of ~p with pids: ~p", [Key, length(Split), length(Pids), Split]),
             lists:foreach(fun(Pid) ->
                                   %% TODO we could check the connections's Address here for 
                                   %% if we received this data from that address and avoid
