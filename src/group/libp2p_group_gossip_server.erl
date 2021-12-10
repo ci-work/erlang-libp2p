@@ -220,6 +220,9 @@ handle_cast({send, Key, Data}, State=#state{bloom=Bloom}) ->
             {_, Pids} = lists:unzip(connections(all, State)),
             PidsCount = length(Pids),
             lager:info("sending data ~p via connection to ~p pids", [Key, PidsCount]),
+            [Shuffled||{_,Shuffled} <- lists:sort([ {rand:uniform(), N} || N <- Pids])],
+            Split = lists:sublist(Shuffled, 5),
+            lager:info("split ~p list to ~p of ~p with pids: ~p", [Key, length(Split), PidsCount, Split]),
             lager:debug("sending data via connection pids: ~p",[Pids]),
             lists:foreach(fun(Pid) ->
                                   %% TODO we could check the connections's Address here for 
