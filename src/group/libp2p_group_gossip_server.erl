@@ -218,6 +218,8 @@ handle_cast({send, Key, Data}, State=#state{bloom=Bloom}) ->
         false ->
             bloom:set(Bloom, {out, Data}),
             {_, Pids} = lists:unzip(connections(all, State)),
+            PidsCount = length(Pids),
+            lager:info("sending data via connection to ~p pids", [PidsCount]),
             lager:debug("sending data via connection pids: ~p",[Pids]),
             lists:foreach(fun(Pid) ->
                                   %% TODO we could check the connections's Address here for 
