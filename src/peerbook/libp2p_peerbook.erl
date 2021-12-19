@@ -1,7 +1,7 @@
 -module(libp2p_peerbook).
 
 -export([start_link/2, stop/1, init/1, handle_call/3, handle_info/2, handle_cast/2, terminate/2]).
--export([keys/1, values/1,
+-export([keys/1, keys_unfiltered/1, values/1,
          put/2, put/3, get/2,
          random/1, random/2, random/3, random/4,
          refresh/2, is_key/2, remove/2, stale_time/1,
@@ -282,6 +282,10 @@ is_key(Handle=#peerbook{}, ID) ->
 -spec keys(peerbook()) -> [libp2p_crypto:pubkey_bin()].
 keys(Handle=#peerbook{}) ->
     fetch_keys(Handle).
+
+-spec keys_unfiltered(peerbook()) -> [libp2p_crypto:pubkey_bin()].
+keys_unfiltered(Handle=#peerbook{}) ->
+    fetch_keys_unfiltered(Handle).
 
 -spec values(peerbook()) -> [libp2p_peer:peer()].
 values(Handle=#peerbook{}) ->
@@ -750,15 +754,27 @@ fold_peers(Fun, Acc0, #peerbook{tid=TID, store=Store, stale_time=StaleTime}) ->
                  end
          end, Acc0).
 
+fold_peers_unfiltered(Fun, Acc0, #peerbook{store=Store}) ->
+    {ok, Iterator} = rocksdb:iterator(Store, []),
+    fold(Iterator, rocksdb:iterator_move(Iterator, first),
+        fun(Key, Bin, Acc) ->
+            Peer = libp2p_peer:decode_unsafe(Bin),
+            Fun(rev(Key), Peer, Acc)
+        end, Acc0).
+
 fold(Iterator, {error, _}, _Fun, Acc) ->
     rocksdb:iterator_close(Iterator),
     Acc;
 fold(Iterator, {ok, Key, Value}, Fun, Acc) ->
     fold(Iterator, rocksdb:iterator_move(Iterator, next), Fun, Fun(rev(Key), Value, Acc)).
 
+-spec fetch_keys_unfiltered(peerbook()) -> [libp2p_crypto:pubkey_bin()].
+fetch_keys_unfiltered(State=#peerbook{}) ->
+    fold_peers(fun(Key, _, Acc) -> [rev(Key) | Acc] end, [], State).
+
 -spec fetch_keys(peerbook()) -> [libp2p_crypto:pubkey_bin()].
 fetch_keys(State=#peerbook{}) ->
-    fold_peers(fun(Key, _, Acc) -> [rev(Key) | Acc] end, [], State).
+    fold_peers(fun(Key, _, Acc) -> [rev(Key) | Acc] end, [], State)
 
 -spec fetch_peers(peerbook()) -> [libp2p_peer:peer()].
 fetch_peers(State=#peerbook{}) ->
