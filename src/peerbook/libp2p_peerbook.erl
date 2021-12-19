@@ -755,7 +755,10 @@ fold_peers(Fun, Acc0, #peerbook{tid=TID, store=Store, stale_time=StaleTime}) ->
          end, Acc0).
 
 fold_peers_unfiltered(Fun, Acc0, #peerbook{store=Store}) ->
+    Start = erlang:monotonic_time(millisecond),
     {ok, StoreSnapshot} = rocksdb:snapshot(Store),
+    End = erlang:monotonic_time(millisecond),
+    lager:info("store snapshot time: ~p ms", [End-Start]),
     {ok, Iterator} = rocksdb:iterator(Store, [{snapshot, StoreSnapshot}]),
     Folded = fold(Iterator, rocksdb:iterator_move(Iterator, first),
         fun(Key, Bin, Acc) ->
