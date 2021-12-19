@@ -770,7 +770,7 @@ fold(Iterator, {ok, Key, Value}, Fun, Acc) ->
 
 -spec fetch_keys_unfiltered(peerbook()) -> [libp2p_crypto:pubkey_bin()].
 fetch_keys_unfiltered(State=#peerbook{}) ->
-    fold_peers(fun(Key, _, Acc) -> [rev(Key) | Acc] end, [], State).
+    fold_peers_unfiltered(fun(Key, _, Acc) -> [rev(Key) | Acc] end, [], State).
 
 -spec fetch_keys(peerbook()) -> [libp2p_crypto:pubkey_bin()].
 fetch_keys(State=#peerbook{}) ->
