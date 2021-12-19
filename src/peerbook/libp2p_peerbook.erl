@@ -1,7 +1,7 @@
 -module(libp2p_peerbook).
 
 -export([start_link/2, stop/1, init/1, handle_call/3, handle_info/2, handle_cast/2, terminate/2]).
--export([keys/1, keys_unfiltered/1, values/1,
+-export([keys/1, values/1,
          put/2, put/3, get/2,
          random/1, random/2, random/3, random/4,
          refresh/2, is_key/2, remove/2, stale_time/1,
@@ -282,10 +282,6 @@ is_key(Handle=#peerbook{}, ID) ->
 -spec keys(peerbook()) -> [libp2p_crypto:pubkey_bin()].
 keys(Handle=#peerbook{}) ->
     fetch_keys(Handle).
-
--spec keys_unfiltered(peerbook()) -> [libp2p_crypto:pubkey_bin()].
-keys_unfiltered(Handle=#peerbook{}) ->
-    fetch_keys_unfiltered(Handle).
 
 -spec values(peerbook()) -> [libp2p_peer:peer()].
 values(Handle=#peerbook{}) ->
@@ -742,9 +738,10 @@ fetch_peer(ID, Handle=#peerbook{stale_time=StaleTime}) ->
 
 
 fold_peers(Fun, Acc0, #peerbook{tid=TID, store=Store, stale_time=StaleTime}) ->
-    {ok, Iterator} = rocksdb:iterator(Store, []),
+    {ok, StoreSnapshot} = rocksdb:snapshot(Store),
+    {ok, Iterator} = rocksdb:iterator(Store, [{snapshot, StoreSnapshot}]),
     NetworkID = libp2p_swarm:network_id(TID),
-    fold(Iterator, rocksdb:iterator_move(Iterator, first),
+    Folded = fold(Iterator, rocksdb:iterator_move(Iterator, first),
          fun(Key, Bin, Acc) ->
                  Peer = libp2p_peer:decode_unsafe(Bin),
                  case libp2p_peer:is_stale(Peer, StaleTime)
@@ -752,19 +749,7 @@ fold_peers(Fun, Acc0, #peerbook{tid=TID, store=Store, stale_time=StaleTime}) ->
                      true -> Acc;
                      false -> Fun(rev(Key), Peer, Acc)
                  end
-         end, Acc0).
-
-fold_peers_unfiltered(Fun, Acc0, #peerbook{store=Store}) ->
-    Start = erlang:monotonic_time(millisecond),
-    {ok, StoreSnapshot} = rocksdb:snapshot(Store),
-    End = erlang:monotonic_time(millisecond),
-    lager:info("store snapshot time: ~p ms", [End-Start]),
-    {ok, Iterator} = rocksdb:iterator(Store, [{snapshot, StoreSnapshot}]),
-    Folded = fold(Iterator, rocksdb:iterator_move(Iterator, first),
-        fun(Key, Bin, Acc) ->
-            Peer = libp2p_peer:decode_unsafe(Bin),
-            Fun(rev(Key), Peer, Acc)
-        end, Acc0),
+         end, Acc0),
     rocksdb:release_snapshot(StoreSnapshot),
     Folded.
 
@@ -773,10 +758,6 @@ fold(Iterator, {error, _}, _Fun, Acc) ->
     Acc;
 fold(Iterator, {ok, Key, Value}, Fun, Acc) ->
     fold(Iterator, rocksdb:iterator_move(Iterator, next), Fun, Fun(rev(Key), Value, Acc)).
-
--spec fetch_keys_unfiltered(peerbook()) -> [libp2p_crypto:pubkey_bin()].
-fetch_keys_unfiltered(State=#peerbook{}) ->
-    fold_peers_unfiltered(fun(Key, _, Acc) -> [rev(Key) | Acc] end, [], State).
 
 -spec fetch_keys(peerbook()) -> [libp2p_crypto:pubkey_bin()].
 fetch_keys(State=#peerbook{}) ->
