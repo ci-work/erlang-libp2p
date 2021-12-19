@@ -755,12 +755,15 @@ fold_peers(Fun, Acc0, #peerbook{tid=TID, store=Store, stale_time=StaleTime}) ->
          end, Acc0).
 
 fold_peers_unfiltered(Fun, Acc0, #peerbook{store=Store}) ->
-    {ok, Iterator} = rocksdb:iterator(Store, []),
-    fold(Iterator, rocksdb:iterator_move(Iterator, first),
+    {ok, StoreSnapshot} = rocksdb:snapshot(Store),
+    {ok, Iterator} = rocksdb:iterator(Store, [{snapshot, StoreSnapshot}]),
+    Folded = fold(Iterator, rocksdb:iterator_move(Iterator, first),
         fun(Key, Bin, Acc) ->
             Peer = libp2p_peer:decode_unsafe(Bin),
             Fun(rev(Key), Peer, Acc)
-        end, Acc0).
+        end, Acc0),
+    rocksdb:release_snapshot(StoreSnapshot),
+    Folded.
 
 fold(Iterator, {error, _}, _Fun, Acc) ->
     rocksdb:iterator_close(Iterator),
