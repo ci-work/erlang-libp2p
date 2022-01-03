@@ -116,14 +116,16 @@ put(#peerbook{tid=TID, stale_time=StaleTime}=Handle, PeerList0, Prevalidated) ->
                                  %% Only store peers that are not _this_ peer,
                                  %% are newer than what we have,
                                  %% are not stale themselves
-                                 ListenAddrs = libp2p_peer:listen_addrs(NewPeer),
-                                 NatType = libp2p_peer:nat_type(NewPeer),
-                                 Timestamp = libp2p_peer:timestamp(NewPeer),
-                                 lager:info("address: ~p", [libp2p_crypto:pubkey_bin_to_p2p(libp2p_peer:pubkey_bin(NewPeer))]),
-                                 lager:info("nat_type: ~s", [NatType]),
-                                 lager:info("listen addresses: ~p", [length(ListenAddrs)]),
-                                 lager:info("last_updated: ~p", [(erlang:system_time(millisecond) - Timestamp) / 1000]),
-                                 lager:info("addresses: ~s", [libp2p_peer:listen_addrs(NewPeer)]),
+
+                                 %% debug peer gossip:
+                                 %% ListenAddrs = libp2p_peer:listen_addrs(NewPeer),
+                                 %% NatType = libp2p_peer:nat_type(NewPeer),
+                                 %% Timestamp = libp2p_peer:timestamp(NewPeer),
+                                 %% lager:info("address: ~p", [libp2p_crypto:pubkey_bin_to_p2p(libp2p_peer:pubkey_bin(NewPeer))]),
+                                 %% lager:info("nat_type: ~s", [NatType]),
+                                 %% lager:info("listen addresses: ~p", [length(ListenAddrs)]),
+                                 %% lager:info("last_updated: ~p", [(erlang:system_time(millisecond) - Timestamp) / 1000]),
+                                 %% lager:info("addresses: ~s", [libp2p_peer:listen_addrs(NewPeer)]),
                                  case NewPeerId /= ThisPeerId
                                      andalso (AllowRFC1918 orelse not libp2p_peer:has_private_ip(NewPeer))
                                      andalso libp2p_peer:supersedes(NewPeer, ExistingPeer)
