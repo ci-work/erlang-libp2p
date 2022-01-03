@@ -116,6 +116,7 @@ put(#peerbook{tid=TID, stale_time=StaleTime}=Handle, PeerList0, Prevalidated) ->
                                  %% Only store peers that are not _this_ peer,
                                  %% are newer than what we have,
                                  %% are not stale themselves
+                                 lager:info("~p", [NewPeer]),
                                  case NewPeerId /= ThisPeerId
                                      andalso (AllowRFC1918 orelse not libp2p_peer:has_private_ip(NewPeer))
                                      andalso libp2p_peer:supersedes(NewPeer, ExistingPeer)
