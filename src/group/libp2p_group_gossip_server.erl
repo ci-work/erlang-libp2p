@@ -284,7 +284,7 @@ handle_cast({send, Kind, Key, Data}, State=#state{bloom=Bloom, workers=Workers})
             ok;
         false ->
             bloom:set(Bloom, {out, Data}),
-            {_, Pids} = lists:unzip(connection_pids(all, State)),
+            {_, Pids} = lists:unzip(connection_pids(Kind, Workers)),
             Shuffled = shuffle(Pids),
             Split = lists:sublist(Shuffled, ?DEFAULT_MAX_PEERS_FOR_RESOLUTION),
             lager:debug("split ~p list to ~p of ~p with pids: ~p", [Key, length(Split), length(Pids), Split]),
