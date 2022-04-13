@@ -287,7 +287,6 @@ handle_cast({send, Kind, Key, Data}, State=#state{bloom=Bloom, workers=Workers})
             {_, Pids} = lists:unzip(connection_pids(Kind, Workers)),
             Shuffled = shuffle(Pids),
             Split = lists:sublist(Shuffled, ?DEFAULT_MAX_PEERS_FOR_RESOLUTION),
-            lager:debug("split ~p list to ~p of ~p with pids: ~p", [Key, length(Split), length(Pids), Split]),
             spawn(fun() ->
                           lists:foreach(fun(Pid) ->
                                   %% TODO we could check the connections's Address here for 
