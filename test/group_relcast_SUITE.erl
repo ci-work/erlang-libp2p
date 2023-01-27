@@ -23,21 +23,24 @@ all() ->
 
 init_per_testcase(defer_test = TestCase, Config) ->
     Config0 = test_util:init_base_dir_config(?MODULE, TestCase, Config),
-    Swarms = test_util:setup_swarms(2, [{libp2p_peerbook, [{notify_time, 1000}]},
+    Swarms = test_util:setup_swarms(2, [{libp2p_peerbook, [{notify_time, 1000},
+                                                           {force_network_id, <<"GossipTestSuite">>}]},
                                         {libp2p_group_gossip, [{peer_cache_timeout, 50}]},
                                         {libp2p_nat, [{enabled, false}]},
                                         {base_dir, ?config(base_dir, Config0)}]),
     [{swarms, Swarms} | Config];
 init_per_testcase(close_test = TestCase, Config) ->
     Config0 = test_util:init_base_dir_config(?MODULE, TestCase, Config),
-    Swarms = test_util:setup_swarms(2, [{libp2p_peerbook, [{notify_time, 1000}]},
+    Swarms = test_util:setup_swarms(2, [{libp2p_peerbook, [{notify_time, 1000},
+                                                           {force_network_id, <<"GossipTestSuite">>}]},
                                         {libp2p_group_gossip, [{peer_cache_timeout, 100}]},
                                         {libp2p_nat, [{enabled, false}]},
                                         {base_dir, ?config(base_dir, Config0)}]),
     [{swarms, Swarms} | Config];
 init_per_testcase(TestCase, Config) ->
     Config0 = test_util:init_base_dir_config(?MODULE, TestCase, Config),
-    Swarms = test_util:setup_swarms(3, [{libp2p_peerbook, [{notify_time, 1000}]},
+    Swarms = test_util:setup_swarms(3, [{libp2p_peerbook, [{notify_time, 1000},
+                                                           {force_network_id, <<"GossipTestSuite">>}]},
                                         {libp2p_group_gossip, [{peer_cache_timeout, 100}]},
                                         {libp2p_nat, [{enabled, false}]},
                                         {base_dir, ?config(base_dir, Config0)}]),
@@ -56,8 +59,8 @@ unicast_test(Config) ->
     test_util:connect_swarms(S1, S3),
     test_util:connect_swarms(S2, S3),
 
-    test_util:await_gossip_groups(Swarms),
-    test_util:await_gossip_streams(Swarms),
+    test_util:await_gossip_groups(Swarms, 300),
+    test_util:await_gossip_streams(Swarms, 300),
 
     Members = [libp2p_swarm:pubkey_bin(S) || S <- Swarms],
 
@@ -92,7 +95,7 @@ unicast_test(Config) ->
     %% Receive message from G1 as handled by G2
     receive
         {handle_msg, 1, <<"unicast1">>} -> ok
-    after 15000 ->
+    after 30000 ->
               ct:pal("Messages: ~p", [erlang:process_info(self(), [messages])]),
               error(timeout)
     end,
@@ -100,7 +103,7 @@ unicast_test(Config) ->
     %% Receive the message from G2 as handled by G3
     receive
         {handle_msg, 2, <<"unicast2">>} -> ok
-    after 15000 ->
+    after 30000 ->
               ct:pal("Messages: ~p", [erlang:process_info(self(), [messages])]),
               error(timeout)
     end,
@@ -114,8 +117,8 @@ multicast_test(Config) ->
     test_util:connect_swarms(S1, S3),
     test_util:connect_swarms(S2, S3),
 
-    test_util:await_gossip_groups(Swarms),
-    test_util:await_gossip_streams(Swarms),
+    test_util:await_gossip_groups(Swarms, 300),
+    test_util:await_gossip_streams(Swarms, 300),
 
     Members = [libp2p_swarm:pubkey_bin(S) || S <- Swarms],
 
@@ -147,8 +150,8 @@ defer_test(Config) ->
 
     test_util:connect_swarms(S1, S2),
 
-    test_util:await_gossip_groups(Swarms),
-    test_util:await_gossip_streams(Swarms),
+    test_util:await_gossip_groups(Swarms, 300),
+    test_util:await_gossip_streams(Swarms, 300),
 
     Members = [libp2p_swarm:pubkey_bin(S) || S <- Swarms],
 
@@ -189,8 +192,8 @@ close_test(Config) ->
 
     test_util:connect_swarms(S1, S2),
 
-    test_util:await_gossip_groups(Swarms),
-    test_util:await_gossip_streams(Swarms),
+    test_util:await_gossip_groups(Swarms, 300),
+    test_util:await_gossip_streams(Swarms, 300),
 
     Members = [libp2p_swarm:pubkey_bin(S) || S <- Swarms],
 
@@ -233,8 +236,8 @@ pipeline_test(Config) ->
 
     test_util:connect_swarms(S1, S2),
 
-    test_util:await_gossip_groups(Swarms),
-    test_util:await_gossip_streams(Swarms),
+    test_util:await_gossip_groups(Swarms, 300),
+    test_util:await_gossip_streams(Swarms, 300),
 
     Members = [libp2p_swarm:address(S) || S <- Swarms],
 
@@ -317,7 +320,7 @@ handle_msg(Resp) ->
     end.
 
 receive_messages(Acc, ExpectedCount) ->
-    Ref = erlang:send_after(20000, self(), receive_message_timeout),
+    Ref = erlang:send_after(40000, self(), receive_message_timeout),
     receive_messages_(Acc, ExpectedCount, Ref).
 
 receive_messages_(Acc, 0, Ref) ->

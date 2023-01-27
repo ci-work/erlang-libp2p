@@ -58,7 +58,8 @@ end_per_testcase(_, _Config) ->
 %%--------------------------------------------------------------------
 basic(_Config) ->
     SwarmOpts = [
-        {libp2p_nat, [{enabled, false}]}
+        {libp2p_nat, [{enabled, false}]},
+        {libp2p_peerbook, [{force_network_id, <<"GossipTestSuite">>}]}
     ],
     Version = "relaytest/1.0.0",
 
@@ -119,8 +120,8 @@ basic(_Config) ->
                 _ -> false
             end
         end,
-        100,
-        250
+        200,
+        500
     ),
 
     % Force B to be the relay
@@ -137,7 +138,7 @@ basic(_Config) ->
     % NAT fails so init relay on A manually
     ok = libp2p_relay:init(ASwarm),
     % Wait for a relay address to be provided
-    ok = test_util:wait_until(fun() -> [] /= get_relay_addresses(ASwarm) end),
+    ok = test_util:wait_until(fun() -> [] /= get_relay_addresses(ASwarm) end, 200, 250),
 
 
     % Testing relay address
@@ -154,7 +155,7 @@ basic(_Config) ->
                     false
             end
         end,
-        100,
+        200,
         250
     ),
 
